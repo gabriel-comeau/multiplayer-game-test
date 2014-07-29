@@ -31,8 +31,8 @@ var (
 	// The thread-safe client holder.  See ClientHolder.go
 	clientHolder *ClientHolder
 
-	// The map of entities present in the game
-	entities map[int64]*PlayerEntity
+	// The thread-safe map of entities present in the game
+	entityHolder *EntityHolder
 
 	// The queue of messages to process each iteration of the main loop
 	messageQueue *protocol.MessageQueue
@@ -41,7 +41,7 @@ var (
 func init() {
 	idGen = CreateIdGenerator()
 	clientHolder = CreateClientHolder()
-	entities = make(map[int64]*PlayerEntity)
+	entityHolder = CreateEntityHolder()
 	messageQueue = protocol.CreateMessageQueue()
 }
 
@@ -80,14 +80,16 @@ func main() {
 					seq := typed.Seq
 
 					// Move the unit -- it could have been removed so make sure it's still there
-					ent, ok := entities[typed.PlayerId]
-					if ok {
-						ent.Move(moveVec)
+					ent := entityHolder.GetEntity(typed.PlayerId)
+					if ent == nil {
+						continue
+					}
 
-						// Apply the new last sequence number
-						if ent.lastSeq < seq {
-							ent.lastSeq = seq
-						}
+					ent.Move(moveVec)
+
+					// Apply the new last sequence number
+					if ent.lastSeq < seq {
+						ent.lastSeq = seq
 					}
 
 				} else {
@@ -102,7 +104,7 @@ func main() {
 		// OK, all messages processed for this tick, send out an entity message
 		// We'll take stock of where all the entities are and send out an updated world state.
 		msgEnts := make([]protocol.MessageEntity, 0)
-		for _, ent := range entities {
+		for _, ent := range entityHolder.GetEntities() {
 			msgEnts = append(msgEnts, protocol.MessageEntity{Id: ent.entityId, Position: ent.position, LastSeq: ent.lastSeq})
 		}
 
@@ -115,7 +117,7 @@ func main() {
 		lastTick = now
 
 		// If it took less long than SLEEP_TIME, sleep for the difference, otherwise this ends
-		// up sending ALOT of messages with no changes to the clients.
+		// up sending A LOT of messages with no changes to the clients.
 		//
 		// Alternatively, we could check to see if the world state has changed and only send it out
 		// when something new has happened.
@@ -149,7 +151,7 @@ func listenForConns() {
 			fmt.Printf("Player # is: %v\n", playerId)
 
 			player := CreatePlayerEntity(playerId, sf.Vector2f{30, 30})
-			entities[playerId] = player
+			entityHolder.AddEntity(player)
 
 			client := new(Client)
 			client.conn = newConn
@@ -195,12 +197,8 @@ func handleClient(client *Client) {
 	fmt.Printf("Player: %v left\n", client.clientId)
 	clientHolder.RemoveClient(client)
 
-	// remove the entity from the map
-	//
-	// TODO: Regular maps are not thread safe and this is a goroutine.  With a high amount of
-	// simultaenous connections, this could lead to some racy errors.
-	delete(entities, client.clientId)
-
+	// remove the entity from the holder
+	entityHolder.RemoveEntity(client.clientId)
 }
 
 // See note in handle client for how this could be improved.

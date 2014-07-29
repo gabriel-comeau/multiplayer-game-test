@@ -24,13 +24,6 @@ func (this *ClientHolder) RemoveClient(client *Client) {
 	delete(this.clients, client.clientId)
 }
 
-// Returns how many elements are in the map (at call time - thread safety!)
-func (this *ClientHolder) Count() int {
-	this.lock.RLock()
-	defer this.lock.RUnlock()
-	return len(this.clients)
-}
-
 // Gets a specific client, by ID, out of the map.  Returns nil if client is not available.
 //
 // TODO: to make this more of an idiomatic Go call, change this to return client, err like regular
