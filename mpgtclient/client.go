@@ -115,8 +115,7 @@ func main() {
 				// Now we're going to iterate through the entities contained in the message.  On the
 				// first pass we're going to do a couple of different things.  If the entity doesn't
 				// exist, we're going to add it.  If the entity is ours, we'll apply interpolation based
-				// on our past inputs.  If the entity is someone else's and exists we'll move it.  If the
-				// entity doesn't exist, we'll create it.
+				// on our past inputs.  If the entity is someone else's and exists we'll move it.
 
 				for _, msgEnt := range typed.Entities {
 					// first check if this thing exists at all
@@ -154,7 +153,7 @@ func main() {
 				}
 
 				// Now, we've also got to check to see if we still have any remaining entities
-				// that belong to players who've left.  This means we have to another ugly iteration
+				// that belong to players who've left.  This means we have to do another ugly iteration
 				// but that's life.
 				removeDisconnectedPlayers(typed.Entities)
 			}
