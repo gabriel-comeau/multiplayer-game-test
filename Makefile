@@ -6,6 +6,9 @@ main:
 server:
 	go install github.com/gabriel-comeau/multiplayer-game-test/mpgtserver
 
+tests:
+	go install github.com/gabriel-comeau/multiplayer-game-test/loadtester
+
 libs:
 	go install github.com/gabriel-comeau/multiplayer-game-test/shared
 	go install github.com/gabriel-comeau/multiplayer-game-test/protocol
@@ -14,6 +17,7 @@ libs:
 clean:
 	rm -f "$(GOPATH)/bin/mpgtserver"
 	rm -f "$(GOPATH)/bin/mpgtclient"
+	rm -f "$(GOPATH)/bin/loadtester"
 	rm -rf "$(GOPATH)/pkg/linux_amd64/github.com/gabriel-comeau/multiplayer-game-test"
 
 dep-clean:
