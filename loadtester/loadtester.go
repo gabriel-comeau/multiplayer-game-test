@@ -21,6 +21,7 @@ type TestPlayer struct {
 const (
 	NUM_CLIENTS               = 5
 	SLEEP_TIME  time.Duration = 33 * time.Millisecond
+	COUNTER_MAX int           = 5
 )
 
 func main() {
@@ -49,15 +50,26 @@ func runTestPlayer(testPlayer *TestPlayer) {
 	// Preset up the timestep stuff so there's a value for the first iteration of the loop
 	lastTick := time.Now()
 	var dt time.Duration = 0
+	var inputState *shared.InputState
+	var counter int = 0
 
 	for {
-		// Generate a random input state
-		inputState := generateRandomInputState()
+		// Generate a new random input state if the counter is zero.  We don't want to send
+		// a new input state each tick or the movement is too wacky.
+		if counter == 0 {
+			inputState = generateRandomInputState()
+		}
+
 		msg := protocol.CreateSendInputMessage(inputState, testPlayer.lastSeq, dt, testPlayer.playerId)
 		testPlayer.conn.Write(msg.Encode())
 		testPlayer.lastSeq++
 
 		fmt.Printf("Sending message from client %v: %+v\n", testPlayer.playerId, msg)
+
+		counter++
+		if counter > COUNTER_MAX {
+			counter = 0
+		}
 
 		// Get how long it took to do all of this
 		now := time.Now()
