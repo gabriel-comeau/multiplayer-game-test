@@ -165,8 +165,18 @@ func main() {
 
 		renderWindow.Clear(sf.Color{0, 0, 0, 0})
 
-		for _, unit := range entities {
-			unit.Draw(renderWindow, sf.DefaultRenderStates())
+		// Draw all the units but draw the player last so it's always on top
+		var playerUnit *Unit
+		for unitId, unit := range entities {
+			if unitId == myPlayerId {
+				playerUnit = unit
+			} else {
+				unit.Draw(renderWindow, sf.DefaultRenderStates())
+			}
+		}
+
+		if playerUnit != nil {
+			playerUnit.Draw(renderWindow, sf.DefaultRenderStates())
 		}
 
 		renderWindow.Display()
