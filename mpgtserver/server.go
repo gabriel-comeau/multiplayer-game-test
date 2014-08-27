@@ -6,8 +6,6 @@ import (
 	"net"
 	"time"
 
-	sf "bitbucket.org/krepa098/gosfml2"
-
 	"github.com/gabriel-comeau/multiplayer-game-test/protocol"
 	"github.com/gabriel-comeau/multiplayer-game-test/shared"
 )
@@ -150,7 +148,7 @@ func listenForConns() {
 			fmt.Printf("ACCEPTED: %v <-> %v\n", newConn.LocalAddr(), newConn.RemoteAddr())
 			fmt.Printf("Player # is: %v\n", playerId)
 
-			player := CreatePlayerEntity(playerId, sf.Vector2f{30, 30})
+			player := CreatePlayerEntity(playerId, shared.FloatVector{X: 30, Y: 30})
 			entityHolder.AddEntity(player)
 
 			client := new(Client)

@@ -84,7 +84,7 @@ func main() {
 		// process user input, changing the value of the inputstate struct
 		inputState = handleUserInput(renderWindow, inputState)
 		if inputState.HasInput() {
-			velocity = shared.GetVectorFromInputAndDt(inputState, dt)
+			velocity = ConvertToSFMLVector(shared.GetVectorFromInputAndDt(inputState, dt))
 
 			// client side prediction
 			player, ok := entities[myPlayerId]
@@ -124,7 +124,7 @@ func main() {
 						// not in the map, let's create it - we'll bail after this because even if
 						// this is our own entity we'll start to worry about interpolation on the next
 						// pass only
-						addEntityToGameWorld(msgEnt.Id, msgEnt.Position)
+						addEntityToGameWorld(msgEnt.Id, ConvertToSFMLVector(msgEnt.Position))
 						continue
 					}
 
@@ -132,7 +132,7 @@ func main() {
 					if msgEnt.Id == myPlayerId {
 
 						// First, set the position to wherever the server thinks it was
-						existingEnt.SetPosition(msgEnt.Position)
+						existingEnt.SetPosition(ConvertToSFMLVector(msgEnt.Position))
 
 						// Next, let's go through our pending inputs list and get rid of everything older
 						// than this seq number
@@ -141,14 +141,14 @@ func main() {
 							if oldMsg.Seq > msgEnt.LastSeq {
 								// not processed yet, so reapply and keep it in the list
 								newUnacked = append(newUnacked, oldMsg)
-								existingEnt.Move(shared.GetVectorFromInputAndDt(oldMsg.Input, oldMsg.Dt))
+								existingEnt.Move(ConvertToSFMLVector(shared.GetVectorFromInputAndDt(oldMsg.Input, oldMsg.Dt)))
 							}
 						}
 						unacked = newUnacked
 
 					} else {
 						// This is someone else's entity, so just move it
-						existingEnt.SetPosition(msgEnt.Position)
+						existingEnt.SetPosition(ConvertToSFMLVector(msgEnt.Position))
 					}
 				}
 

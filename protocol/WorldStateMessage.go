@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"time"
 
-	sf "bitbucket.org/krepa098/gosfml2"
+	"github.com/gabriel-comeau/multiplayer-game-test/shared"
 )
 
 // A WorldStateMessage is used to send a list of entities to each client after every server tick.
@@ -61,13 +61,13 @@ func DecodeWorldStateMessage(raw []byte) *WorldStateMessage {
 // There should be one of these for each player currently in the server's world state.
 type MessageEntity struct {
 	Id       int64
-	Position sf.Vector2f
+	Position shared.FloatVector
 	LastSeq  int64
 }
 
 // Create a new MessageEntity.  Don't bother making a pointer to it, it's a very small struct.  If
 // ever we need to send hundreds of these at once we might consider making it a pointer for memory
 // efficiency.
-func CreateMessageEntity(id int64, pos sf.Vector2f, seq int64) MessageEntity {
+func CreateMessageEntity(id int64, pos shared.FloatVector, seq int64) MessageEntity {
 	return MessageEntity{Id: id, Position: pos, LastSeq: seq}
 }
