@@ -11,27 +11,27 @@ type EntityHolder struct {
 }
 
 // Add a new entity to the map
-func (this *EntityHolder) AddEntity(entity *PlayerEntity) {
-	this.lock.Lock()
-	defer this.lock.Unlock()
-	this.entities[entity.entityId] = entity
+func (eh *EntityHolder) AddEntity(entity *PlayerEntity) {
+	eh.lock.Lock()
+	defer eh.lock.Unlock()
+	eh.entities[entity.entityId] = entity
 }
 
 // Remove a entity from the map
-func (this *EntityHolder) RemoveEntity(id int64) {
-	this.lock.Lock()
-	defer this.lock.Unlock()
-	delete(this.entities, id)
+func (eh *EntityHolder) RemoveEntity(id int64) {
+	eh.lock.Lock()
+	defer eh.lock.Unlock()
+	delete(eh.entities, id)
 }
 
 // Gets a specific entity, by ID, out of the map.  Returns nil if entity is not available.
 //
 // TODO: to make this more of an idiomatic Go call, change this to return entity, err like regular
 // maps do.
-func (this *EntityHolder) GetEntity(id int64) *PlayerEntity {
-	this.lock.RLock()
-	defer this.lock.RUnlock()
-	e, ok := this.entities[id]
+func (eh *EntityHolder) GetEntity(id int64) *PlayerEntity {
+	eh.lock.RLock()
+	defer eh.lock.RUnlock()
+	e, ok := eh.entities[id]
 	if ok {
 		return e
 	} else {
@@ -40,11 +40,11 @@ func (this *EntityHolder) GetEntity(id int64) *PlayerEntity {
 }
 
 // Get all of the entities as a slice.
-func (this *EntityHolder) GetEntities() []*PlayerEntity {
-	this.lock.RLock()
-	defer this.lock.RUnlock()
+func (eh *EntityHolder) GetEntities() []*PlayerEntity {
+	eh.lock.RLock()
+	defer eh.lock.RUnlock()
 	eSlice := make([]*PlayerEntity, 0)
-	for _, entity := range this.entities {
+	for _, entity := range eh.entities {
 		eSlice = append(eSlice, entity)
 	}
 
@@ -53,10 +53,8 @@ func (this *EntityHolder) GetEntities() []*PlayerEntity {
 
 // Constructor to init the holder
 func CreateEntityHolder() *EntityHolder {
-	lck := new(sync.RWMutex)
-	holder := new(EntityHolder)
-	holder.lock = lck
-	holder.entities = make(map[int64]*PlayerEntity)
-
-	return holder
+	return &EntityHolder{
+		lock:     new(sync.RWMutex),
+		entities: make(map[int64]*PlayerEntity),
+	}
 }

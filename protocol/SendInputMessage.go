@@ -28,31 +28,36 @@ func (m *SendInputMessage) Encode() []byte {
 	return AddNewlineToByteSlice(bytes)
 }
 
-// Satisfy the Message interface
+// Message interface
 func (m *SendInputMessage) GetSentTime() time.Time {
 	return m.SendTime
 }
 
-// Satisfy the Message interface
+// Message interface
 func (m *SendInputMessage) GetRcvdTime() time.Time {
 	return m.RcvdTime
 }
 
-// Satisfy the Message interface
+// Message interface
+func (m *SendInputMessage) SetRcvdTime(t time.Time) {
+	m.RcvdTime = t
+}
+
+// Message interface
 func (m *SendInputMessage) GetMessageType() MessageType {
 	return m.MessageType
 }
 
 // Constructor, returns a pointer to a SendInputMessage
 func CreateSendInputMessage(inputState *shared.InputState, seq int64, dt time.Duration, playerId int64) *SendInputMessage {
-	msg := new(SendInputMessage)
-	msg.SendTime = time.Now()
-	msg.MessageType = SEND_INPUT_MESSAGE
-	msg.Input = inputState
-	msg.Seq = seq
-	msg.Dt = dt
-	msg.PlayerId = playerId
-	return msg
+	return &SendInputMessage{
+		SendTime:    time.Now(),
+		MessageType: SEND_INPUT_MESSAGE,
+		Input:       inputState,
+		Seq:         seq,
+		Dt:          dt,
+		PlayerId:    playerId,
+	}
 }
 
 // Decode a SendInputMessage from raw bytes of JSON data and return a pointer to it

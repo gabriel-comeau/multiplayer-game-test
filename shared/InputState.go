@@ -10,24 +10,23 @@ type InputState struct {
 }
 
 // Check if any of the key in the state are actually being pressed.
-func (this *InputState) HasInput() bool {
-	hasInputs := false
+func (i *InputState) HasInput() bool {
 
-	if this.KeyLeftDown {
-		hasInputs = true
+	if i.KeyLeftDown {
+		return true
 	}
 
-	if this.KeyRightDown {
-		hasInputs = true
+	if i.KeyRightDown {
+		return true
 	}
 
-	if this.KeyDownDown {
-		hasInputs = true
+	if i.KeyDownDown {
+		return true
 	}
 
-	if this.KeyUpDown {
-		hasInputs = true
+	if i.KeyUpDown {
+		return true
 	}
 
-	return hasInputs
+	return false
 }

@@ -24,28 +24,33 @@ func (m *PlayerUUIDMessage) Encode() []byte {
 	return AddNewlineToByteSlice(bytes)
 }
 
-// Satisfy the Message interface
+// Message interface
 func (m *PlayerUUIDMessage) GetSentTime() time.Time {
 	return m.SentTime
 }
 
-// Satisfy the Message interface
+// Message interface
 func (m *PlayerUUIDMessage) GetRcvdTime() time.Time {
 	return m.RcvdTime
 }
 
-// Satisfy the Message interface
+// Message interface
+func (m *PlayerUUIDMessage) SetRcvdTime(t time.Time) {
+	m.RcvdTime = t
+}
+
+// Message interface
 func (m *PlayerUUIDMessage) GetMessageType() MessageType {
 	return m.MessageType
 }
 
 // Constructor for PlayerUUIDMessage, returns pointer to one
 func CreatePlayerUUIDMessage(uuid int64) *PlayerUUIDMessage {
-	msg := new(PlayerUUIDMessage)
-	msg.SentTime = time.Now()
-	msg.MessageType = PLAYER_UUID_MESSAGE
-	msg.UUID = uuid
-	return msg
+	return &PlayerUUIDMessage{
+		SentTime:    time.Now(),
+		MessageType: PLAYER_UUID_MESSAGE,
+		UUID:        uuid,
+	}
 }
 
 // Decode a PlayerUUIDMessage from raw bytes of JSON data and return a pointer to it

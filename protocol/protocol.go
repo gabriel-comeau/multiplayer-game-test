@@ -19,6 +19,7 @@ type MessageType int
 type Message interface {
 	GetSentTime() time.Time
 	GetRcvdTime() time.Time
+	SetRcvdTime(t time.Time)
 	GetMessageType() MessageType
 	Encode() []byte
 }

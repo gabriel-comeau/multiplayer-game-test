@@ -190,6 +190,7 @@ func handleClient(client *Client) {
 		}
 
 		if validateMessageClientId(message, client.clientId) {
+			message.SetRcvdTime(time.Now())
 			messageQueue.PushMessage(message)
 		}
 	}

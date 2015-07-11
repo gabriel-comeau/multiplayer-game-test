@@ -10,12 +10,12 @@ type FloatVector struct {
 	Y float32
 }
 
-// Add the vector to another
-func (this FloatVector) Plus(other FloatVector) FloatVector {
-	return FloatVector{X: this.X + other.X, Y: this.Y + other.Y}
+// Add this vector to another
+func (v FloatVector) Plus(other FloatVector) FloatVector {
+	return FloatVector{X: v.X + other.X, Y: v.Y + other.Y}
 }
 
 // Subtract a vector from this vector
-func (this FloatVector) Minus(other FloatVector) FloatVector {
-	return FloatVector{X: this.X - other.X, Y: this.Y - other.Y}
+func (v FloatVector) Minus(other FloatVector) FloatVector {
+	return FloatVector{X: v.X - other.X, Y: v.Y - other.Y}
 }

@@ -27,28 +27,33 @@ func (m *WorldStateMessage) Encode() []byte {
 	return AddNewlineToByteSlice(bytes)
 }
 
-// Satisfy the Message interface
+// Message interface
 func (m *WorldStateMessage) GetSentTime() time.Time {
 	return m.SentTime
 }
 
-// Satisfy the Message interface
+// Message interface
 func (m *WorldStateMessage) GetRcvdTime() time.Time {
 	return m.RcvdTime
 }
 
-// Satisfy the Message interface
+// Message interface
+func (m *WorldStateMessage) SetRcvdTime(t time.Time) {
+	m.RcvdTime = t
+}
+
+// Message interface
 func (m *WorldStateMessage) GetMessageType() MessageType {
 	return m.MessageType
 }
 
 // Constructor function to create a new WorldStateMessage and return a pointer to it
 func CreateWorldStateMessage(entities []MessageEntity) *WorldStateMessage {
-	msg := new(WorldStateMessage)
-	msg.SentTime = time.Now()
-	msg.MessageType = WORLD_STATE_MESSAGE
-	msg.Entities = entities
-	return msg
+	return &WorldStateMessage{
+		SentTime:    time.Now(),
+		MessageType: WORLD_STATE_MESSAGE,
+		Entities:    entities,
+	}
 }
 
 // Take in a raw byte slice and convert it back to a WorldStateMessage pointer

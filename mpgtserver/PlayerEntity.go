@@ -28,9 +28,9 @@ func (p *PlayerEntity) GetTimeOffset(current time.Time) time.Duration {
 
 // Create a new entity and return a pointer to it.
 func CreatePlayerEntity(id int64, initialPos shared.FloatVector) *PlayerEntity {
-	ent := new(PlayerEntity)
-	ent.position = initialPos
-	ent.entityId = id
-	ent.lastSeq = 0
-	return ent
+	return &PlayerEntity{
+		position: initialPos,
+		entityId: id,
+		lastSeq:  0,
+	}
 }
