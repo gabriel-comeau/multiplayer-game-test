@@ -10,7 +10,8 @@ import (
 // Message sent to server by client indicating their current input state this tick
 type SendInputMessage struct {
 	MessageType MessageType
-	Timestamp   int64
+	SendTime    time.Time
+	RcvdTime    time.Time
 	Input       *shared.InputState
 	Dt          time.Duration
 	Seq         int64
@@ -18,8 +19,8 @@ type SendInputMessage struct {
 }
 
 // Encode the message to JSON format and get the raw bytes
-func (this *SendInputMessage) Encode() []byte {
-	bytes, err := json.Marshal(this)
+func (m *SendInputMessage) Encode() []byte {
+	bytes, err := json.Marshal(m)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -28,20 +29,24 @@ func (this *SendInputMessage) Encode() []byte {
 }
 
 // Satisfy the Message interface
-func (this *SendInputMessage) GetTimestamp() int64 {
-	return this.Timestamp
+func (m *SendInputMessage) GetSentTime() time.Time {
+	return m.SendTime
 }
 
 // Satisfy the Message interface
-func (this *SendInputMessage) GetMessageType() MessageType {
-	return this.MessageType
+func (m *SendInputMessage) GetRcvdTime() time.Time {
+	return m.RcvdTime
+}
+
+// Satisfy the Message interface
+func (m *SendInputMessage) GetMessageType() MessageType {
+	return m.MessageType
 }
 
 // Constructor, returns a pointer to a SendInputMessage
 func CreateSendInputMessage(inputState *shared.InputState, seq int64, dt time.Duration, playerId int64) *SendInputMessage {
-	t := time.Now()
 	msg := new(SendInputMessage)
-	msg.Timestamp = t.UnixNano()
+	msg.SendTime = time.Now()
 	msg.MessageType = SEND_INPUT_MESSAGE
 	msg.Input = inputState
 	msg.Seq = seq

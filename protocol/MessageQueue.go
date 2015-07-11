@@ -13,20 +13,20 @@ type MessageQueue struct {
 }
 
 // Pushes a message into the back of the queue
-func (this *MessageQueue) PushMessage(msg Message) {
-	this.lock.Lock()
-	defer this.lock.Unlock()
-	this.messages = append(this.messages, msg)
+func (mq *MessageQueue) PushMessage(msg Message) {
+	mq.lock.Lock()
+	defer mq.lock.Unlock()
+	mq.messages = append(mq.messages, msg)
 }
 
 // Remove the oldest message from the queue.  Returns nil on
 // an empty queue
-func (this *MessageQueue) PopMessage() Message {
-	this.lock.Lock()
-	defer this.lock.Unlock()
-	if len(this.messages) > 0 {
-		ev := this.messages[0]
-		this.messages = this.messages[1:]
+func (mq *MessageQueue) PopMessage() Message {
+	mq.lock.Lock()
+	defer mq.lock.Unlock()
+	if len(mq.messages) > 0 {
+		ev := mq.messages[0]
+		mq.messages = mq.messages[1:]
 		return ev
 	}
 	return nil
@@ -36,18 +36,18 @@ func (this *MessageQueue) PopMessage() Message {
 // while reading the old ones (effectively making the loop continue to grow) so instead we
 // pull all the messages out in a single operation behind the locked mutex and then clear
 // the queue.
-func (this *MessageQueue) PopAll() []Message {
-	this.lock.Lock()
-	defer this.lock.Unlock()
+func (mq *MessageQueue) PopAll() []Message {
+	mq.lock.Lock()
+	defer mq.lock.Unlock()
 
 	// copy the existing messages to a new slice
-	msgs := make([]Message, len(this.messages))
-	for i, m := range this.messages {
+	msgs := make([]Message, len(mq.messages))
+	for i, m := range mq.messages {
 		msgs[i] = m
 	}
 
 	// replace the existing slice with an empty one
-	this.messages = make([]Message, 0)
+	mq.messages = make([]Message, 0)
 	return msgs
 }
 

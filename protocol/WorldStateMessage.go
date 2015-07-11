@@ -12,13 +12,14 @@ import (
 // server is.
 type WorldStateMessage struct {
 	MessageType MessageType
-	Timestamp   int64
+	SentTime    time.Time
+	RcvdTime    time.Time
 	Entities    []MessageEntity
 }
 
 // Convert the message into JSON representation and return the raw bytes
-func (this *WorldStateMessage) Encode() []byte {
-	bytes, err := json.Marshal(this)
+func (m *WorldStateMessage) Encode() []byte {
+	bytes, err := json.Marshal(m)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -27,20 +28,24 @@ func (this *WorldStateMessage) Encode() []byte {
 }
 
 // Satisfy the Message interface
-func (this *WorldStateMessage) GetTimestamp() int64 {
-	return this.Timestamp
+func (m *WorldStateMessage) GetSentTime() time.Time {
+	return m.SentTime
 }
 
 // Satisfy the Message interface
-func (this *WorldStateMessage) GetMessageType() MessageType {
-	return this.MessageType
+func (m *WorldStateMessage) GetRcvdTime() time.Time {
+	return m.RcvdTime
+}
+
+// Satisfy the Message interface
+func (m *WorldStateMessage) GetMessageType() MessageType {
+	return m.MessageType
 }
 
 // Constructor function to create a new WorldStateMessage and return a pointer to it
 func CreateWorldStateMessage(entities []MessageEntity) *WorldStateMessage {
-	t := time.Now()
 	msg := new(WorldStateMessage)
-	msg.Timestamp = t.UnixNano()
+	msg.SentTime = time.Now()
 	msg.MessageType = WORLD_STATE_MESSAGE
 	msg.Entities = entities
 	return msg

@@ -3,6 +3,7 @@ package protocol
 import (
 	"encoding/json"
 	"errors"
+	"time"
 )
 
 const (
@@ -16,7 +17,8 @@ type MessageType int
 
 // Interface for generic network messages which can be serialized to JSON
 type Message interface {
-	GetTimestamp() int64
+	GetSentTime() time.Time
+	GetRcvdTime() time.Time
 	GetMessageType() MessageType
 	Encode() []byte
 }

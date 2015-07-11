@@ -9,13 +9,14 @@ import (
 // what their unique ID is.
 type PlayerUUIDMessage struct {
 	MessageType MessageType
-	Timestamp   int64
+	SentTime    time.Time
+	RcvdTime    time.Time
 	UUID        int64
 }
 
 // Encode the message to JSON format and get the raw bytes
-func (this *PlayerUUIDMessage) Encode() []byte {
-	bytes, err := json.Marshal(this)
+func (m *PlayerUUIDMessage) Encode() []byte {
+	bytes, err := json.Marshal(m)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -24,20 +25,24 @@ func (this *PlayerUUIDMessage) Encode() []byte {
 }
 
 // Satisfy the Message interface
-func (this *PlayerUUIDMessage) GetTimestamp() int64 {
-	return this.Timestamp
+func (m *PlayerUUIDMessage) GetSentTime() time.Time {
+	return m.SentTime
 }
 
 // Satisfy the Message interface
-func (this *PlayerUUIDMessage) GetMessageType() MessageType {
-	return this.MessageType
+func (m *PlayerUUIDMessage) GetRcvdTime() time.Time {
+	return m.RcvdTime
+}
+
+// Satisfy the Message interface
+func (m *PlayerUUIDMessage) GetMessageType() MessageType {
+	return m.MessageType
 }
 
 // Constructor for PlayerUUIDMessage, returns pointer to one
 func CreatePlayerUUIDMessage(uuid int64) *PlayerUUIDMessage {
-	t := time.Now()
 	msg := new(PlayerUUIDMessage)
-	msg.Timestamp = t.UnixNano()
+	msg.SentTime = time.Now()
 	msg.MessageType = PLAYER_UUID_MESSAGE
 	msg.UUID = uuid
 	return msg
