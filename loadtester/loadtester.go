@@ -2,7 +2,7 @@ package main
 
 import (
 	"bufio"
-	"fmt"
+	"log"
 	"math/rand"
 	"net"
 	"os"
@@ -19,14 +19,14 @@ type TestPlayer struct {
 }
 
 const (
-	NUM_CLIENTS               = 5
+	NUM_CLIENTS               = 25
 	SLEEP_TIME  time.Duration = 33 * time.Millisecond
 	COUNTER_MAX int           = 5
 )
 
 func main() {
 	for i := 0; i < NUM_CLIENTS; i++ {
-		fmt.Println("Launching client:", i)
+		log.Print("Launching client:", i)
 		launchClient()
 	}
 
@@ -38,7 +38,7 @@ func main() {
 func launchClient() {
 	testPlayer := new(TestPlayer)
 	testPlayer.conn, testPlayer.playerId = connectToServer()
-	fmt.Printf("Got a uuid of: %v\n", testPlayer.playerId)
+	log.Printf("Got a uuid of: %v\n", testPlayer.playerId)
 	go listenForMessages(testPlayer)
 	go runTestPlayer(testPlayer)
 
@@ -64,7 +64,7 @@ func runTestPlayer(testPlayer *TestPlayer) {
 		testPlayer.conn.Write(msg.Encode())
 		testPlayer.lastSeq++
 
-		fmt.Printf("Sending message from client %v: %+v\n", testPlayer.playerId, msg)
+		log.Printf("Sending message from client %v: %+v\n", testPlayer.playerId, msg)
 
 		counter++
 		if counter > COUNTER_MAX {
@@ -80,7 +80,7 @@ func runTestPlayer(testPlayer *TestPlayer) {
 			time.Sleep(SLEEP_TIME - dt)
 		}
 
-		fmt.Printf("Client %v made it out of sleep loop\n", testPlayer.playerId)
+		log.Printf("Client %v made it out of sleep loop\n", testPlayer.playerId)
 	}
 }
 
@@ -122,7 +122,7 @@ func connectToServer() (net.Conn, int64) {
 
 		if err != nil {
 			conn.Close()
-			fmt.Println("Error while trying to accept player id")
+			log.Print("Error while trying to accept player id")
 			os.Exit(1)
 			break
 		}
@@ -133,14 +133,14 @@ func connectToServer() (net.Conn, int64) {
 
 		message, err := protocol.DecodeMessage(line)
 		if err != nil {
-			fmt.Println("ERROR during decode: " + err.Error())
+			log.Print("ERROR during decode: " + err.Error())
 			continue
 		}
 
 		if message.GetMessageType() == protocol.PLAYER_UUID_MESSAGE {
 			typed, ok := message.(*protocol.PlayerUUIDMessage)
 			if !ok {
-				fmt.Println("Message couldn't be asserted into PlayerUUIDMessage though that was message id")
+				log.Print("Message couldn't be asserted into PlayerUUIDMessage though that was message id")
 				conn.Close()
 				os.Exit(1)
 			}
@@ -148,7 +148,7 @@ func connectToServer() (net.Conn, int64) {
 			playerId = typed.UUID
 			break
 		} else {
-			fmt.Println("Got the wrong type of message - expected PLAYER_UUID_MESSAGE")
+			log.Print("Got the wrong type of message - expected PLAYER_UUID_MESSAGE")
 			conn.Close()
 			os.Exit(1)
 		}
@@ -168,7 +168,7 @@ func listenForMessages(testPlayer *TestPlayer) {
 
 		if err != nil {
 			testPlayer.conn.Close()
-			fmt.Println("ERROR, CLOSING CONN: " + err.Error())
+			log.Print("ERROR, CLOSING CONN: " + err.Error())
 			break
 		}
 
@@ -179,11 +179,11 @@ func listenForMessages(testPlayer *TestPlayer) {
 		// Deal with incoming messages from the server
 		message, err := protocol.DecodeMessage(line)
 		if err != nil {
-			fmt.Println("Error decoding message: " + err.Error())
+			log.Print("Error decoding message: " + err.Error())
 			continue
 		}
 
 		// We don't really care about the messages right now, just print it out
-		fmt.Printf("Client: %v recieved world state message: %v\n", testPlayer.playerId, message)
+		log.Printf("Client: %v recieved world state message: %v\n", testPlayer.playerId, message)
 	}
 }

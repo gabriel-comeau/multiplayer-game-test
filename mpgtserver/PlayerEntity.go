@@ -1,6 +1,8 @@
 package main
 
 import (
+	"time"
+
 	"github.com/gabriel-comeau/multiplayer-game-test/shared"
 )
 
@@ -8,15 +10,20 @@ import (
 // about textures but does keep track of the owning player's UUID, position and the last acknowledged
 // sequence number.
 type PlayerEntity struct {
-	entityId int64
-	position shared.FloatVector
-	lastSeq  int64
+	entityId    int64
+	position    shared.FloatVector
+	lastSeq     int64
+	lastSeqTime time.Time
 }
 
 // Move the entity by a given offset.
-func (this *PlayerEntity) Move(offset shared.FloatVector) {
-	this.position.X += offset.X
-	this.position.Y += offset.Y
+func (p *PlayerEntity) Move(offset shared.FloatVector) {
+	p.position.X += offset.X
+	p.position.Y += offset.Y
+}
+
+func (p *PlayerEntity) GetTimeOffset(current time.Time) time.Duration {
+	return p.lastSeqTime.Sub(current)
 }
 
 // Create a new entity and return a pointer to it.

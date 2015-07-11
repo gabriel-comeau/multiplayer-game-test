@@ -2,7 +2,7 @@ package main
 
 import (
 	"bufio"
-	"fmt"
+	"log"
 	"net"
 	"time"
 
@@ -50,7 +50,7 @@ func main() {
 
 	// Preset up the timestep stuff so there's a value for the first iteration of the loop
 	lastTick := time.Now()
-	var dt time.Duration = 0
+	var dt time.Duration
 
 	for {
 		messages := messageQueue.PopAll()
@@ -58,45 +58,48 @@ func main() {
 
 			// The only message expected FROM the client is the move message
 			// so lets look for that one
-			if message.GetMessageType() == protocol.SEND_INPUT_MESSAGE {
-				typed, ok := message.(*protocol.SendInputMessage)
-				if !ok {
-					fmt.Println("Message couldn't be asserted into SendInputMessage")
-				}
-
-				// If the message is valid.  It checks that the DT is not too big basically -
-				// this is a lame validation but for now it prevents any obviously bad manipulation.
-				//
-				// In a better system we could check the times of when we received this message and the
-				// ones before it, to make sure the time delta fits within that frame.  For now we'll do
-				// a simple clamp type approach.
-				if validateMessageDt(typed.Dt) {
-					// Get the vector for the move
-					moveVec := shared.GetVectorFromInputAndDt(typed.Input, typed.Dt)
-
-					// Get the seq
-					seq := typed.Seq
-
-					// Move the unit -- it could have been removed so make sure it's still there
-					ent := entityHolder.GetEntity(typed.PlayerId)
-					if ent == nil {
-						continue
-					}
-
-					ent.Move(moveVec)
-
-					// Apply the new last sequence number
-					if ent.lastSeq < seq {
-						ent.lastSeq = seq
-					}
-
-				} else {
-					fmt.Println("Dropping invalid send input message - DT sucks: ", typed.Dt)
-				}
-
-			} else {
-				fmt.Println("Got an invalid message type from client:", string(message.GetMessageType()))
+			if message.GetMessageType() != protocol.SEND_INPUT_MESSAGE {
+				log.Print("Got an invalid message type from client:", string(message.GetMessageType()))
+				break
 			}
+
+			typed, ok := message.(*protocol.SendInputMessage)
+			if !ok {
+				log.Print("Message couldn't be asserted into SendInputMessage")
+				break
+			}
+
+			// If the message is valid.  It checks that the DT is not too big basically -
+			// this is a lame validation but for now it prevents any obviously bad manipulation.
+			//
+			// In a better system we could check the times of when we received this message and the
+			// ones before it, to make sure the time delta fits within that frame.  For now we'll do
+			// a simple clamp type approach.
+			if !validateMessageDt(typed.Dt) {
+				log.Print("Dropping invalid send input message - DT sucks: ", typed.Dt)
+				break
+
+			}
+			// Get the vector for the move
+			moveVec := shared.GetVectorFromInputAndDt(typed.Input, typed.Dt)
+
+			// Get the seq
+			seq := typed.Seq
+
+			// Move the unit -- it could have been removed so make sure it's still there
+			ent := entityHolder.GetEntity(typed.PlayerId)
+			if ent == nil {
+				continue
+			}
+
+			ent.Move(moveVec)
+
+			// Apply the new last sequence number
+			if ent.lastSeq < seq {
+				ent.lastSeq = seq
+			}
+
+			//if ent.lastSeqTime.Before(u)
 		}
 
 		// OK, all messages processed for this tick, send out an entity message
@@ -134,19 +137,19 @@ func listenForConns() {
 		panic("couldn't start listening: " + err.Error())
 	}
 
-	fmt.Println("SERVER LISTENING")
+	log.Print("SERVER LISTENING")
 
 	for {
 		newConn, err := server.Accept()
 
 		if err != nil {
-			fmt.Printf("ERROR DURING ACCEPT: %v", err)
+			log.Printf("ERROR DURING ACCEPT: %v", err)
 		}
 
 		if newConn != nil {
 			playerId := idGen.GetNextId()
-			fmt.Printf("ACCEPTED: %v <-> %v\n", newConn.LocalAddr(), newConn.RemoteAddr())
-			fmt.Printf("Player # is: %v\n", playerId)
+			log.Printf("ACCEPTED: %v <-> %v\n", newConn.LocalAddr(), newConn.RemoteAddr())
+			log.Printf("Player # is: %v\n", playerId)
 
 			player := CreatePlayerEntity(playerId, shared.FloatVector{X: 30, Y: 30})
 			entityHolder.AddEntity(player)
@@ -167,7 +170,7 @@ func listenForConns() {
 // input messages, it puts them in the global MessageQueue so they'll be processed by the main server
 // loop.  Also responsible for handling client disconnection.
 func handleClient(client *Client) {
-	fmt.Println("Handlin' client")
+	log.Println("Handlin' client")
 	b := bufio.NewReader(client.conn)
 	for {
 		line, err := b.ReadBytes('\n')
@@ -182,7 +185,7 @@ func handleClient(client *Client) {
 		// Dispatch client messages
 		message, err := protocol.DecodeMessage(line)
 		if err != nil {
-			fmt.Println("Error when reading message:", err.Error())
+			log.Println("Error when reading message:", err.Error())
 			continue
 		}
 
@@ -192,7 +195,7 @@ func handleClient(client *Client) {
 	}
 
 	// EOF happened - this client has disconnected
-	fmt.Printf("Player: %v left\n", client.clientId)
+	log.Printf("Player: %v left\n", client.clientId)
 	clientHolder.RemoveClient(client)
 
 	// remove the entity from the holder
@@ -214,7 +217,7 @@ func validateMessageClientId(message protocol.Message, clientId int64) bool {
 	if message.GetMessageType() == protocol.SEND_INPUT_MESSAGE {
 		typed, ok := message.(*protocol.SendInputMessage)
 		if !ok {
-			fmt.Println("Message couldn't be asserted into SendInputMessage")
+			log.Println("Message couldn't be asserted into SendInputMessage")
 			return false
 		}
 
@@ -226,7 +229,7 @@ func validateMessageClientId(message protocol.Message, clientId int64) bool {
 	}
 
 	// The other messages don't come from players so this doesn't make any sense.
-	fmt.Println("Someone sent a bad message to the server - only expecting SEND_INPUT_MESSAGE, got: ", message.GetMessageType())
+	log.Println("Someone sent a bad message to the server - only expecting SEND_INPUT_MESSAGE, got: ", message.GetMessageType())
 	return false
 }
 

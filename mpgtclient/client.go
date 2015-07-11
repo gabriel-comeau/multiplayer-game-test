@@ -2,7 +2,7 @@ package main
 
 import (
 	"bufio"
-	"fmt"
+	"log"
 	"net"
 	"os"
 	"runtime"
@@ -108,7 +108,7 @@ func main() {
 			case protocol.WORLD_STATE_MESSAGE:
 				typed, ok := message.(*protocol.WorldStateMessage)
 				if !ok {
-					fmt.Println("Got a message with WORLD_STATE_MESSAGE id but couldn't be cast")
+					log.Print("Got a message with WORLD_STATE_MESSAGE id but couldn't be cast")
 					continue
 				}
 
@@ -255,7 +255,7 @@ func addEntityToGameWorld(id int64, pos sf.Vector2f) {
 	if id == myPlayerId {
 		_, ok := entities[myPlayerId]
 		if ok {
-			fmt.Println("ERROR - tried to add a new player with the same ID")
+			log.Print("ERROR - tried to add a new player with the same ID")
 			return
 		}
 
@@ -264,7 +264,7 @@ func addEntityToGameWorld(id int64, pos sf.Vector2f) {
 	} else {
 		_, ok := entities[id]
 		if ok {
-			fmt.Println("ERROR - tried to add a new other entity with an ID that was already in the system")
+			log.Print("ERROR - tried to add a new other entity with an ID that was already in the system")
 			return
 		}
 
@@ -311,7 +311,7 @@ func connectToServer() net.Conn {
 
 		if err != nil {
 			conn.Close()
-			fmt.Println("Error while trying to accept player id")
+			log.Print("Error while trying to accept player id")
 			os.Exit(1)
 			break
 		}
@@ -322,21 +322,21 @@ func connectToServer() net.Conn {
 
 		message, err := protocol.DecodeMessage(line)
 		if err != nil {
-			fmt.Println("ERROR during decode: " + err.Error())
+			log.Print("ERROR during decode: " + err.Error())
 			continue
 		}
 
 		if message.GetMessageType() == protocol.PLAYER_UUID_MESSAGE {
 			typed, ok := message.(*protocol.PlayerUUIDMessage)
 			if !ok {
-				fmt.Println("Message couldn't be asserted into PlayerUUIDMessage though that was message id")
+				log.Print("Message couldn't be asserted into PlayerUUIDMessage though that was message id")
 				conn.Close()
 				os.Exit(1)
 			}
 			myPlayerId = typed.UUID
 			break
 		} else {
-			fmt.Println("Got the wrong type of message - expected PLAYER_UUID_MESSAGE")
+			log.Print("Got the wrong type of message - expected PLAYER_UUID_MESSAGE")
 			conn.Close()
 			os.Exit(1)
 		}
@@ -359,7 +359,7 @@ func listenForMessages(conn net.Conn) {
 
 		if err != nil {
 			conn.Close()
-			fmt.Println("ERROR, CLOSING CONN: " + err.Error())
+			log.Print("ERROR, CLOSING CONN: " + err.Error())
 			break
 		}
 
@@ -370,7 +370,7 @@ func listenForMessages(conn net.Conn) {
 		// Deal with incoming messages from the server
 		message, err := protocol.DecodeMessage(line)
 		if err != nil {
-			fmt.Println("Error decoding message: " + err.Error())
+			log.Print("Error decoding message: " + err.Error())
 			continue
 		}
 		messageQueue.PushMessage(message)
