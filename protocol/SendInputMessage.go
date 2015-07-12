@@ -13,7 +13,7 @@ type SendInputMessage struct {
 	SendTime    time.Time
 	RcvdTime    time.Time
 	Input       *shared.InputState
-	Dt          time.Duration
+	Dt          shared.MDuration
 	Seq         int64
 	PlayerId    int64
 }
@@ -55,7 +55,7 @@ func CreateSendInputMessage(inputState *shared.InputState, seq int64, dt time.Du
 		MessageType: SEND_INPUT_MESSAGE,
 		Input:       inputState,
 		Seq:         seq,
-		Dt:          dt,
+		Dt:          shared.MDuration{dt},
 		PlayerId:    playerId,
 	}
 }

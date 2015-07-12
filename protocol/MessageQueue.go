@@ -8,7 +8,7 @@ import (
 // messages are being read no new ones get added until the read has ended.  Additionally,
 // it is a queue so a read operation is also a write operation as it removes the element.
 type MessageQueue struct {
-	lock     *sync.RWMutex
+	lock     *sync.Mutex
 	messages []Message
 }
 
@@ -53,9 +53,8 @@ func (mq *MessageQueue) PopAll() []Message {
 
 // Creates a new MessageQueue object, inits it and returns it
 func CreateMessageQueue() *MessageQueue {
-	mq := new(MessageQueue)
-	mq.lock = new(sync.RWMutex)
-	mq.messages = make([]Message, 0)
-
-	return mq
+	return &MessageQueue{
+		lock:     new(sync.Mutex),
+		messages: make([]Message, 0),
+	}
 }

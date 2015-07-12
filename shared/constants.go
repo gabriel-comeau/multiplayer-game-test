@@ -1,9 +1,5 @@
 package shared
 
-import (
-	"time"
-)
-
 const (
 
 	// *******************************************
@@ -36,6 +32,10 @@ const (
 	// How fast (pixels per second)
 	SPEED float32 = 300
 
-	// Maximum allowable DT per move
-	MAX_DT time.Duration = time.Second / 20
+	// Max allowable difference between the reported frame delta in a message and the
+	// time between when that message was receieved and the previous one was.
+	MAX_DT_DIFF_MILLIS = 8
+
+	// Divide a number of nanoseconds by this number to get the value in millis
+	NANO_TO_MILLI = 1000000
 )

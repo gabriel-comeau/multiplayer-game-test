@@ -1,15 +1,11 @@
 package shared
 
-import (
-	"time"
-)
-
 // Taking into account the max speed constant (pixels per second an object can move),
 // use the current input and the frame time to create a vector representing the offset for how
 // far a unit moved and in which direction.
 //
 // Both the client and the server use this calculation so it belongs to the shared package.
-func GetVectorFromInputAndDt(inputState *InputState, dt time.Duration) FloatVector {
+func GetVectorFromInputAndDt(inputState *InputState, dt MDuration) FloatVector {
 	dtFloatSeconds := float32(dt.Seconds())
 	velocity := FloatVector{X: 0, Y: 0}
 

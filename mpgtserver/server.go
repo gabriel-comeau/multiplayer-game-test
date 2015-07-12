@@ -60,24 +60,20 @@ func main() {
 			// so lets look for that one
 			if message.GetMessageType() != protocol.SEND_INPUT_MESSAGE {
 				log.Print("Got an invalid message type from client:", string(message.GetMessageType()))
-				break
+				continue
 			}
 
 			typed, ok := message.(*protocol.SendInputMessage)
 			if !ok {
 				log.Print("Message couldn't be asserted into SendInputMessage")
-				break
+				continue
 			}
 
-			// If the message is valid.  It checks that the DT is not too big basically -
-			// this is a lame validation but for now it prevents any obviously bad manipulation.
-			//
-			// In a better system we could check the times of when we received this message and the
-			// ones before it, to make sure the time delta fits within that frame.  For now we'll do
-			// a simple clamp type approach.
-			if !validateMessageDt(typed.Dt) {
-				log.Print("Dropping invalid send input message - DT sucks: ", typed.Dt)
-				break
+			// Based on the client-provided frame delta and the time between recieved messages from
+			// this particular client, we decide if the client is telling the truth or not about
+			// their delta.
+			if !validateMessage(typed) {
+				continue
 
 			}
 			// Get the vector for the move
@@ -94,12 +90,14 @@ func main() {
 
 			ent.Move(moveVec)
 
-			// Apply the new last sequence number
+			// Apply the new last sequence number and rcvd time
 			if ent.lastSeq < seq {
 				ent.lastSeq = seq
 			}
 
-			//if ent.lastSeqTime.Before(u)
+			if ent.lastSeqTime.Before(typed.GetRcvdTime()) {
+				ent.lastSeqTime = typed.GetRcvdTime()
+			}
 		}
 
 		// OK, all messages processed for this tick, send out an entity message
@@ -203,11 +201,35 @@ func handleClient(client *Client) {
 	entityHolder.RemoveEntity(client.clientId)
 }
 
-// See note in handle client for how this could be improved.
-func validateMessageDt(dt time.Duration) bool {
-	if dt > shared.MAX_DT {
+// Attempt to use the time difference between when the latest and previous messages were
+// received to check if the frame delta sent by the client looks valid or not.  Allows for a
+// bit of a difference because of processing / network time, which will probably need to be tweaked
+// over time.
+//
+// A potential for improvement would be to look at the average time between sends for a client
+// and start to do some prediction.  It could allow for flexibility since both the network
+// and the client app can hit unexpected latency (network because network and client because GC hits)
+func validateMessage(msg *protocol.SendInputMessage) bool {
+
+	player := entityHolder.GetEntity(msg.PlayerId)
+	if player == nil {
+		log.Printf("Trying to validate message from disconnected player: %v", msg.PlayerId)
 		return false
 	}
+
+	lastRcvdTime := player.lastSeqTime
+	timeDiff := shared.MDuration{msg.GetRcvdTime().Sub(lastRcvdTime)}
+
+	if msg.Dt.Milliseconds() > timeDiff.Milliseconds()+shared.MAX_DT_DIFF_MILLIS {
+		log.Printf("Message from player %v rejected because delta %v ms is longer than period between last msg rcv %v.",
+			msg.PlayerId, msg.Dt.Milliseconds(), lastRcvdTime)
+		return false
+	}
+
+	//TODO debug
+	//log.Printf("Valid message rcvd for player: %v.  Msg DT %v ms - Player lastSeq time: %v ms - Msg rcvd time: %v ms - diff: %v ms",
+	//	msg.PlayerId, msg.Dt.Nanoseconds()/shared.NANO_TO_MILLI_CONV, player.lastSeqTime, msg.GetRcvdTime(), timeDiff.Nanoseconds()/shared.NANO_TO_MILLI_CONV)
+
 	return true
 }
 

@@ -84,7 +84,7 @@ func main() {
 		// process user input, changing the value of the inputstate struct
 		inputState = handleUserInput(renderWindow, inputState)
 		if inputState.HasInput() {
-			velocity = ConvertToSFMLVector(shared.GetVectorFromInputAndDt(inputState, dt))
+			velocity = ConvertToSFMLVector(shared.GetVectorFromInputAndDt(inputState, shared.MDuration{dt}))
 
 			// client side prediction
 			player, ok := entities[myPlayerId]
