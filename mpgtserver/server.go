@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"fmt"
 	"log"
 	"net"
 	"time"
@@ -223,17 +222,11 @@ func validateMessage(msg *protocol.SendInputMessage) bool {
 
 	timeDiff := shared.MDuration{msg.GetRcvdTime().Sub(player.lastSeqTime)}
 
-	fmt.Printf("msg.getRcvd: %v -- player.lastSeqTime: %v -- subbedVal before type coerce: %v",
-		msg.GetRcvdTime(), player.lastSeqTime, msg.GetRcvdTime().Sub(player.lastSeqTime))
-
 	if msg.Dt.Milliseconds() > timeDiff.Milliseconds()+shared.MAX_DT_DIFF_MILLIS {
-		log.Printf("Message from player %v rejected because delta %v ms is longer than period between last msg rcv %v.",
-			msg.PlayerId, msg.Dt.Milliseconds(), timeDiff.Milliseconds())
+		log.Printf("Message from player %v rejected because delta %v ms is longer than diff between last msg rcv %v + max added %v.",
+			msg.PlayerId, msg.Dt.Milliseconds(), timeDiff.Milliseconds(), shared.MAX_DT_DIFF_MILLIS)
 		return false
 	}
-
-	log.Printf("MSG FROM P%v OK", msg.PlayerId)
-
 	return true
 }
 
