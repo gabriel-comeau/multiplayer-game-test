@@ -19,7 +19,7 @@ type TestPlayer struct {
 }
 
 const (
-	NUM_CLIENTS               = 20
+	NUM_CLIENTS               = 1
 	SLEEP_TIME  time.Duration = 33 * time.Millisecond
 	COUNTER_MAX int           = 5
 )

@@ -1,5 +1,7 @@
 package shared
 
+import "time"
+
 const (
 
 	// *******************************************
@@ -31,6 +33,9 @@ const (
 
 	// How fast (pixels per second)
 	SPEED float32 = 300
+
+	// Clamp val
+	MAX_DT time.Duration = time.Second / 20
 
 	// Max allowable difference between the reported frame delta in a message and the
 	// time between when that message was receieved and the previous one was.

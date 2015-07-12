@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"log"
 	"net"
 	"time"
@@ -69,32 +70,35 @@ func main() {
 				continue
 			}
 
-			// Based on the client-provided frame delta and the time between recieved messages from
-			// this particular client, we decide if the client is telling the truth or not about
-			// their delta.
-			if !validateMessage(typed) {
-				continue
-
-			}
-			// Get the vector for the move
-			moveVec := shared.GetVectorFromInputAndDt(typed.Input, typed.Dt)
-
-			// Get the seq
-			seq := typed.Seq
-
-			// Move the unit -- it could have been removed so make sure it's still there
 			ent := entityHolder.GetEntity(typed.PlayerId)
 			if ent == nil {
 				continue
 			}
 
+			// Based on the client-provided frame delta and the time between recieved messages from
+			// this particular client, we decide if the client is telling the truth or not about
+			// their delta.
+			if !validateMessage(typed) {
+
+				// Still want this to happen even if we reject this message
+				ent.lastSeqTime = typed.GetRcvdTime()
+
+				continue
+
+			}
+			// Get the vector for the move
+			moveVec := shared.GetVectorFromInputAndDt(typed.Input, clampDeltaTime(typed.Dt))
+
+			// Get the seq
+			seq := typed.Seq
+
+			// Move the unit
 			ent.Move(moveVec)
 
 			// Apply the new last sequence number and rcvd time
 			if ent.lastSeq < seq {
 				ent.lastSeq = seq
 			}
-
 			if ent.lastSeqTime.Before(typed.GetRcvdTime()) {
 				ent.lastSeqTime = typed.GetRcvdTime()
 			}
@@ -217,20 +221,31 @@ func validateMessage(msg *protocol.SendInputMessage) bool {
 		return false
 	}
 
-	lastRcvdTime := player.lastSeqTime
-	timeDiff := shared.MDuration{msg.GetRcvdTime().Sub(lastRcvdTime)}
+	timeDiff := shared.MDuration{msg.GetRcvdTime().Sub(player.lastSeqTime)}
+
+	fmt.Printf("msg.getRcvd: %v -- player.lastSeqTime: %v -- subbedVal before type coerce: %v",
+		msg.GetRcvdTime(), player.lastSeqTime, msg.GetRcvdTime().Sub(player.lastSeqTime))
 
 	if msg.Dt.Milliseconds() > timeDiff.Milliseconds()+shared.MAX_DT_DIFF_MILLIS {
 		log.Printf("Message from player %v rejected because delta %v ms is longer than period between last msg rcv %v.",
-			msg.PlayerId, msg.Dt.Milliseconds(), lastRcvdTime)
+			msg.PlayerId, msg.Dt.Milliseconds(), timeDiff.Milliseconds())
 		return false
 	}
 
-	//TODO debug
-	//log.Printf("Valid message rcvd for player: %v.  Msg DT %v ms - Player lastSeq time: %v ms - Msg rcvd time: %v ms - diff: %v ms",
-	//	msg.PlayerId, msg.Dt.Nanoseconds()/shared.NANO_TO_MILLI_CONV, player.lastSeqTime, msg.GetRcvdTime(), timeDiff.Nanoseconds()/shared.NANO_TO_MILLI_CONV)
+	log.Printf("MSG FROM P%v OK", msg.PlayerId)
 
 	return true
+}
+
+// Clamp a delta to the max allowed value for sanity's sake
+func clampDeltaTime(in shared.MDuration) shared.MDuration {
+	maxDT := shared.MDuration{shared.MAX_DT}
+
+	if in.Milliseconds() < 0 || in.Milliseconds() > maxDT.Milliseconds() {
+		return maxDT
+	}
+
+	return in
 }
 
 // Ensure that the message is coming from the right client so no one tries any funny
