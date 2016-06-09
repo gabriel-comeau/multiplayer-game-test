@@ -11,27 +11,27 @@ type ClientHolder struct {
 }
 
 // Add a new client to the map
-func (this *ClientHolder) AddClient(client *Client) {
-	this.lock.Lock()
-	defer this.lock.Unlock()
-	this.clients[client.clientId] = client
+func (ch *ClientHolder) AddClient(client *Client) {
+	ch.lock.Lock()
+	defer ch.lock.Unlock()
+	ch.clients[client.clientId] = client
 }
 
 // Remove a client from the map
-func (this *ClientHolder) RemoveClient(client *Client) {
-	this.lock.Lock()
-	defer this.lock.Unlock()
-	delete(this.clients, client.clientId)
+func (ch *ClientHolder) RemoveClient(client *Client) {
+	ch.lock.Lock()
+	defer ch.lock.Unlock()
+	delete(ch.clients, client.clientId)
 }
 
 // Gets a specific client, by ID, out of the map.  Returns nil if client is not available.
 //
 // TODO: to make this more of an idiomatic Go call, change this to return client, err like regular
 // maps do.
-func (this *ClientHolder) GetClient(id int64) *Client {
-	this.lock.RLock()
-	defer this.lock.RUnlock()
-	c, ok := this.clients[id]
+func (ch *ClientHolder) GetClient(id int64) *Client {
+	ch.lock.RLock()
+	defer ch.lock.RUnlock()
+	c, ok := ch.clients[id]
 	if ok {
 		return c
 	} else {
@@ -40,11 +40,11 @@ func (this *ClientHolder) GetClient(id int64) *Client {
 }
 
 // Get all of the clients as a slice.
-func (this *ClientHolder) GetClients() []*Client {
-	this.lock.RLock()
-	defer this.lock.RUnlock()
+func (ch *ClientHolder) GetClients() []*Client {
+	ch.lock.RLock()
+	defer ch.lock.RUnlock()
 	cSlice := make([]*Client, 0)
-	for _, client := range this.clients {
+	for _, client := range ch.clients {
 		cSlice = append(cSlice, client)
 	}
 

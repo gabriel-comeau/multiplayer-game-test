@@ -80,11 +80,12 @@ func main() {
 			if !validateMessage(typed) {
 
 				// Still want this to happen even if we reject this message
-				ent.lastSeqTime = typed.GetRcvdTime()
-
+				if ent.lastSeqTime.Before(typed.GetRcvdTime()) {
+					ent.lastSeqTime = typed.GetRcvdTime()
+				}
 				continue
-
 			}
+
 			// Get the vector for the move
 			moveVec := shared.GetVectorFromInputAndDt(typed.Input, clampDeltaTime(typed.Dt))
 
@@ -223,8 +224,8 @@ func validateMessage(msg *protocol.SendInputMessage) bool {
 	timeDiff := shared.MDuration{msg.GetRcvdTime().Sub(player.lastSeqTime)}
 
 	if msg.Dt.Milliseconds() > timeDiff.Milliseconds()+shared.MAX_DT_DIFF_MILLIS {
-		log.Printf("Message from player %v rejected because delta %v ms is longer than diff between last msg rcv %v + max added %v.",
-			msg.PlayerId, msg.Dt.Milliseconds(), timeDiff.Milliseconds(), shared.MAX_DT_DIFF_MILLIS)
+		log.Printf("Message from player %v with seq: %v rejected because delta %v ms is longer than diff between last msg rcv %v + max added %v.",
+			msg.PlayerId, msg.Seq, msg.Dt.Milliseconds(), timeDiff.Milliseconds(), shared.MAX_DT_DIFF_MILLIS)
 		return false
 	}
 	return true
